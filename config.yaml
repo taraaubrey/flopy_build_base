@@ -1,0 +1,197 @@
+# this is a config file for a model
+#extra:
+  #refer: &id011 # give a reference to data
+    #x: !!float 5 # explicit conversion to data type float
+    #y: 8
+  #num1: !!int "123" # conversion to integer
+  #str1: !!str 120 # conversion to string
+  #again: *id011 # call data by giving the reference
+
+#outline from Wes tara_paki_domain
+
+workspace:
+  sim_name: 'build_testing'
+  output_dir: 'C:\Users\tfo46\OneDrive - University of Canterbury\Tara_PhD\c_PhD\f_Modelling\Workspaces\Pakipaki\flopy_base'
+  data_dir: 'C:\Users\tfo46\OneDrive - University of Canterbury\Tara_PhD\c_PhD\c_Data'
+model:
+  base:
+    name: 'default'
+    region: 'paki'
+    dx: 500
+    dy: 500
+    # thickness of upper layers
+    # minimum vertical dimensions
+    min_aq: 100
+    min_thick: 1
+    # where it at?
+    epsg: 2193
+    # thickness of upper layers
+    top_lays:
+      0: 10.0
+      1: 10.0
+      2: 10.0
+    # whatever remains will be divided into this many additional layers
+    add_lays: 2
+    # drn and sfr bits  
+  make_drn: True
+  make_sfr:  
+    sorder: 1
+    swn_pickle_pth: '..\..\data\nieast_streams_DN3.pkl'    
+    input_file: '..\..\data\streams\DN3\nieast_riv_dn3v5b.shp'
+    sorder_key: 'sorder'
+    snumber_key: 'nzseg_v3'
+    uparea_key: 'cumarea'
+    mswn_pickle_pth: 'default_dxdy'
+    rhk_scale: 1.0
+    est_width: True
+  observations:
+    head:
+      obs_file: '..\..\data\levels\wairau_head_obs.csv'
+      nan_depth: 2.0
+      min_depth: 1.0
+    # see Morgenstern GNS Science Report 2019/63, page 25-26, 36
+    tritium:
+      obs_file: '..\..\data\chemistry\hb_processed_tritium_bores_wk.csv'
+      input_file: '..\..\data\chemistry\NZ_annual_tritium_input.csv'
+      # via Brioch GNS Science Report 2019/76, 2019 Groundwater residence time assessment of Hawke's Bay water supply... 
+      input_factor: 1.08
+      nan_depth: 15.0
+      min_depth: 2.0
+    # flow:
+      # obs_file: '..\..\data\polygons\wairau\wairau_stream_points.shp'
+  # if str and in "raster_inputs" defined by that, otherwise infile?
+  # input rasters
+  raster_inputs:
+    #this defines the model boundary
+    surf_idomain:
+      infile: '..\..\..\c_Data\b_derived\mod_model_files\base_v1_20221118\domain.shp'
+      min_val: 0
+      nan_rep: 0
+      drop_cells: 20
+      fill_cells: 10
+      to_3d: True
+    ic_head:
+      infile: '..\..\data\rasters\ni_sfr_250_4_heads.tif'
+      sigma_mean: 2
+      to_3d: True
+      # min_val: -10
+      max_val: 10000
+      make_nan: 10000
+      # nan_rep: 0
+      mult: 1.0
+    top: 
+      infile: 'a_source\dem_data\NZ_25m_DEM_clip\nz-8m-digital-elevation-model-2012\mosaic\HBRC_dem_2020.tif'
+      # size_median: 1
+      sigma_mean: 2
+      min_val: -10
+      max_val: 3000
+      interp_meth: 'nearest'
+      adjust_boundary:
+        shells: 8
+        neighbors: 3
+    drn_elev:
+      infile: '..\..\data\rasters\hb_elev_15m.tif'
+      # size_median: 1
+      sigma_mean: 2
+      max_val: 3000
+      min_val: -10
+      interp_meth: 'nearest'
+    # how to do netCDF with monthly?
+    rch:
+      infile: '..\..\data\rasters\RainfallRecharge_v3.0_inclAge_NHP_meanAnnual.tif'
+      # size_median: 1
+      sigma_mean: 2
+      min_val: 0
+      nan_rep: 0
+      rs_mean: True
+      # in mm per day so *0.001, plus adjust
+      mult: 0.001
+      clip_k: 0.01
+    # slope used for exponential properties: p = f(z)
+    # slope:
+      # infile: '..\..\data\rasters\ni_mean_slope_120m.tif'
+      # size_median: 1
+      # sigma_mean: 2
+      # min_val: 0
+      # max_val: 999
+      # mult: 0.01
+    #nz_clayfraction at 250m from Rogier
+    surf_clay_frac:
+      infile: '..\..\data\rasters\nz_clayfraction.tif'
+      # size_median: 1
+      # sigma_mean: 2
+      min_val: 0
+      max_val: 1.0
+    # infile: '..\..\data\rasters\nz_porosity.tif'
+    surf_porosity:
+      # size_median: 1
+      geo_class_map: '..\..\data\Qmap2020\Qmap_rocktype_class0.csv'
+      min_val: 1.0e-6
+      max_val: 0.3
+      to_3d: True
+#        dc: 10
+#        a: 75
+#        b: 150
+#        fmin: 4
+      interp_meth: 'nearest'
+    surf_k:
+      # uses prop_from_geoclass method
+      # size_median: 1
+      geo_class_map: '..\..\data\Qmap2020\Qmap_rocktype_class0.csv'      
+      gc_key: 'k'
+      #infile: '..\..\data\rasters\wairau_K_qmap_rogier.tif'
+      max_val: 500
+      min_val: 1.0e-6
+      sigma_mean: 2
+      to_3d: True
+      #        dc: 10
+      #        a: 75
+      #        b: 150
+      #        fmin: 4
+      interp_meth: 'nearest'
+    surf_k33:
+      geo_class_map: '..\..\data\Qmap2020\Qmap_rocktype_class0.csv'
+      gc_key: 'k33'
+      #infile: '..\..\data\rasters\wairau_K_qmap_rogier.tif'
+      max_val: 500
+      min_val: 1.0e-6
+      sigma_mean: 2
+      to_3d: True
+      #        dc: 10
+      #        a: 75
+      #        b: 150
+      #        fmin: 4
+      interp_meth: 'nearest'
+    depth_class:
+      infile: '..\..\data\rasters\mfe-depth-to-hydrogeological-basement-map-2019-GTiff\NZDepthToHydrogeologicalBasement_Classes_coastal_adjustment.tif'
+      min_val: 0
+      max_val: 7
+      make_nan: 0
+      rep_min: 0
+      # offset used for categories e.g. depth_class
+      offset: 0.5          
+      # adjust_boundary:
+        # shells: 8
+        # neighbors: 3
+    # arrays with no file to read, but still filter
+    # TODO: dict of infiles to read
+    aq_depth:
+      sigma_mean: 4
+      max_val: 800
+    # to be consistent with flopy syntax
+    botm:
+      min_val: -1000
+    # TODO: if lay_thick is dict of infiles, read rasters
+    #lay_thick:    
+      # size_median: 1      
+    # anything with "geo_class_file" requires geo_class raster
+    geo_class:
+      infile: '..\..\data\rasters\geo_class_15m_11.tif'
+      interp_meth: 'nearest'
+      make_nan: 0
+  boundaries:
+    land_dh_upstream: 40
+    land_cond_upstream: 10000
+    land_cond_mult: 100.0
+    coast_cond_mult: 10.0
+    drn_surf_cond: 1000
